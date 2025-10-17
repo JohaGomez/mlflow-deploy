@@ -1,37 +1,47 @@
 import os
-import mlflow
-import mlflow.sklearn
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import pandas as pd
-import joblib
-from sklearn.preprocessing import LabelEncoder
-from sklearn.linear_model import LogisticRegression
 import sys
 import traceback
+import platform
+import warnings
+import mlflow
+import mlflow.sklearn
+import pandas as pd
+import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.exceptions import ConvergenceWarning
+
+# Silenciar advertencias de convergencia (para que el pipeline se vea limpio)
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 print(f"--- Debug: Initial CWD: {os.getcwd()} ---")
 
-# --- Define Paths ---
+# --- Definir rutas base ---
 workspace_dir = os.getcwd()
 mlruns_dir = os.path.join(workspace_dir, "mlruns")
 
-# Convertir a formato compatible con Windows (file:///C:/...)
-tracking_uri = f"file:///{mlruns_dir.replace(os.sep, '/')}"
-artifact_location = f"file:///{mlruns_dir.replace(os.sep, '/')}"
+# Detectar sistema operativo y crear URI válida para MLflow
+if platform.system() == "Windows":
+    tracking_uri = f"file:///{mlruns_dir.replace(os.sep, '/')}"
+    artifact_location = f"file:///{mlruns_dir.replace(os.sep, '/')}"
+else:
+    tracking_uri = f"file://{mlruns_dir}"
+    artifact_location = f"file://{mlruns_dir}"
 
 print(f"--- Debug: Workspace Dir: {workspace_dir} ---")
 print(f"--- Debug: MLRuns Dir: {mlruns_dir} ---")
 print(f"--- Debug: Tracking URI: {tracking_uri} ---")
 print(f"--- Debug: Desired Artifact Location Base: {artifact_location} ---")
 
-# --- Asegurar directorio MLRuns ---
+# Asegurar que exista el directorio de MLruns
 os.makedirs(mlruns_dir, exist_ok=True)
 
-# --- Configurar MLflow ---
+# Configurar MLflow
 mlflow.set_tracking_uri(tracking_uri)
 
-# --- Crear o establecer experimento ---
+# --- Crear o recuperar experimento ---
 experiment_name = "CI-CD-Lab2"
 experiment_id = None
 try:
@@ -61,7 +71,7 @@ if experiment_id is None:
     sys.exit(1)
 
 # ===================================================================================
-# === NUEVA SECCIÓN: CARGA Y ENTRENAMIENTO CON DATASET EXTERNO drug.csv ===
+# === CARGA Y ENTRENAMIENTO DEL MODELO CON DATASET EXTERNO ===
 # ===================================================================================
 print("\n--- Cargando dataset externo: drug.csv ---")
 
@@ -87,7 +97,7 @@ y = df_encoded["Drug"]
 # División entrenamiento / prueba
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Modelo de clasificación
+# Entrenamiento del modelo
 model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
@@ -96,7 +106,7 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"✅ Modelo entrenado. Accuracy: {accuracy:.4f}")
 
 # ===================================================================================
-# === SECCIÓN ORIGINAL DE MLflow: INICIAR RUN Y REGISTRAR MODELO ===
+# === REGISTRO EN MLflow ===
 # ===================================================================================
 print(f"--- Debug: Iniciando run de MLflow en Experimento ID: {experiment_id} ---")
 run = None
@@ -108,17 +118,15 @@ try:
         print(f"--- Debug: Run ID: {run_id} ---")
         print(f"--- Debug: URI Real del Artefacto del Run: {actual_artifact_uri} ---")
 
+        # Registrar parámetros y métricas
         mlflow.log_param("model_type", "LogisticRegression")
         mlflow.log_param("dataset", "drug.csv")
         mlflow.log_metric("accuracy", float(accuracy))
 
-        # Registrar modelo
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="model"
-        )
+        # Guardar modelo en MLflow
+        mlflow.sklearn.log_model(sk_model=model, artifact_path="model")
 
-        # Guardar modelo localmente para validación
+        # Guardar modelo localmente
         joblib.dump(model, "model.pkl")
         print("💾 Modelo guardado localmente como model.pkl")
 
