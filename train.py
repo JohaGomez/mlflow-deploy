@@ -42,8 +42,10 @@ os.makedirs(mlruns_dir, exist_ok=True)
 mlflow.set_tracking_uri(tracking_uri)
 
 # --- Crear o recuperar experimento ---
-experiment_name = "CI-CD-Lab2"
+# Usa un nombre diferente para evitar conflicto entre Windows y Linux
+experiment_name = "CI-CD-Lab2-Actions"
 experiment_id = None
+
 try:
     experiment_id = mlflow.create_experiment(
         name=experiment_name,
