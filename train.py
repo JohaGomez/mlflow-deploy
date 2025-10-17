@@ -41,7 +41,8 @@ try:
     )
     print(f"--- Debug: Creado Experimento '{experiment_name}' con ID: {experiment_id} ---")
 except mlflow.exceptions.MlflowException as e:
-    if "RESOURCE_ALREADY_EXISTS" in str(e):
+    error_msg = str(e)
+    if "RESOURCE_ALREADY_EXISTS" in error_msg or "already exists" in error_msg:
         print(f"--- Debug: Experimento '{experiment_name}' ya existe. Obteniendo ID. ---")
         experiment = mlflow.get_experiment_by_name(experiment_name)
         if experiment:
