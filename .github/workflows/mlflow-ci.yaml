@@ -9,34 +9,37 @@ on:
 jobs:
   mlflow-ci:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install deps
+      - name: Instalar dependencias
         run: |
-          make setup
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Train & log with MLflow
+      - name: Entrenar modelo con MLflow
         run: |
+          echo "🚀 Entrenando modelo..."
           make train
-        env:
-          MLFLOW_TRACKING_URI: file://${{ github.workspace }}/mlruns
 
-      - name: Upload artifacts (mlruns + model.pkl)
+      - name: Validar modelo entrenado
+        run: |
+          echo "🔎 Validando modelo..."
+          make validate
+
+      - name: Mostrar resultado final
+        run: |
+          echo "🏁 Accuracy final del modelo:"
+          grep -o "Accuracy:[ 0-9.]*" mlruns/*/*/meta.yaml | tail -n 1 || echo "⚠️ No se encontró el valor de accuracy en los artefactos."
+
+      - name: Subir artefactos de ejecución
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
@@ -44,6 +47,5 @@ jobs:
             mlruns
             model.pkl
 
-      - name: Validate model (fails if threshold not met)
-        run: |
-          make validate
+
+          
