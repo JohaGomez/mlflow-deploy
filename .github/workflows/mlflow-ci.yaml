@@ -1,0 +1,49 @@
+name: CI - Entrenar, Registrar y Validar con MLflow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  mlflow-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install deps
+        run: |
+          make setup
+
+      - name: Train & log with MLflow
+        run: |
+          make train
+        env:
+          MLFLOW_TRACKING_URI: file://${{ github.workspace }}/mlruns
+
+      - name: Upload artifacts (mlruns + model.pkl)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-artifacts
+          path: |
+            mlruns
+            model.pkl
+
+      - name: Validate model (fails if threshold not met)
+        run: |
+          make validate

@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/mlflow-deploy/mlruns/cfbb719f017f4edb99774f80d4d86a5f/artifacts
+end_time: 1760741214840
+entry_point_name: ''
+experiment_id: '281633456156919379'
+lifecycle_stage: active
+run_id: cfbb719f017f4edb99774f80d4d86a5f
+run_name: intrigued-moose-95
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760741202301
+status: 3
+tags: []
+user_id: jgome
