@@ -78,21 +78,23 @@ else:
     sys.exit(1)
 
 # ===========================================================
-# ✅ Guardar accuracy final para GitHub Actions
+# ✅ Exportar accuracy real para GitHub Actions
 # ===========================================================
-import os
-
+# Verificamos que la variable accuracy existe y es numérica
 try:
-    # Ruta absoluta del workspace (GitHub o local)
-    workspace_dir = os.getcwd()
-    accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
+    if 'accuracy' in locals():
+        # Ruta absoluta (compatible con GitHub y Windows)
+        workspace_dir = os.getcwd()
+        accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
 
-    print(f"💾 Guardando accuracy en: {accuracy_path}")
-    with open(accuracy_path, "w") as f:
-        f.write(f"{accuracy:.4f}\n")
+        print(f"💾 Guardando accuracy real en: {accuracy_path}")
+        with open(accuracy_path, "w") as f:
+            f.write(f"{accuracy:.4f}\n")
 
-    print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
+        print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
+    else:
+        print("⚠️ Variable 'accuracy' no encontrada. No se puede guardar accuracy.txt")
 except Exception as e:
-    print(f"⚠️ No se pudo guardar accuracy.txt: {e}")
+    print(f"⚠️ Error al guardar accuracy.txt: {e}")
 
 
