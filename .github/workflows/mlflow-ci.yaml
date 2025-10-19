@@ -49,11 +49,14 @@ jobs:
           name: accuracy-file
           path: accuracy.txt
 
-      # 🔹 Mostrar el resultado final de accuracy
-      - name: Mostrar resultado final
+      # 🔹 Descargar archivo accuracy.txt para mostrar resultado
+      - name: Descargar accuracy.txt
         uses: actions/download-artifact@v4
         with:
           name: accuracy-file
+
+      # 🔹 Mostrar el resultado final del modelo
+      - name: Mostrar resultado final
         run: |
           echo "🏁 Accuracy final del modelo:"
           if [ -f accuracy.txt ]; then
@@ -64,7 +67,7 @@ jobs:
           fi
         shell: bash
 
-      # 🔹 Subir artefactos de ejecución (modelo, logs, runs)
+      # 🔹 Subir artefactos finales de ejecución
       - name: Subir artefactos de ejecución
         uses: actions/upload-artifact@v4
         with:
