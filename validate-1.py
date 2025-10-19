@@ -76,12 +76,15 @@ else:
     print("❌ El modelo no cumple el umbral de precisión. Deteniendo pipeline.")
 
 # ===========================================================
-# ✅ Exportar accuracy real para GitHub Actions (antes del exit)
+# ✅ Exportar accuracy real para GitHub Actions (ruta corregida)
 # ===========================================================
 try:
     if 'accuracy' in locals():
-        # Subimos un nivel: /home/runner/work/mlflow-deploy/
-        workspace_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+        # 1️⃣ Detectar ruta actual (dentro del subdirectorio del runner)
+        current_dir = os.getcwd()
+
+        # 2️⃣ Subir un nivel (donde GitHub busca accuracy.txt)
+        workspace_dir = os.path.dirname(current_dir)
         accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
 
         print(f"💾 Guardando accuracy real en: {accuracy_path}")
@@ -94,7 +97,7 @@ try:
 except Exception as e:
     print(f"⚠️ Error al guardar accuracy.txt: {e}")
 
-# 👇 Solo aquí hacemos la salida final
+# 👇 Salida final después de guardar
 if accuracy >= THRESHOLD:
     sys.exit(0)
 else:
