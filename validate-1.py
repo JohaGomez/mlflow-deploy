@@ -80,9 +80,17 @@ else:
 # ===========================================================
 # ✅ Guardar accuracy final para GitHub Actions
 # ===========================================================
+import os
+
 try:
-    with open("accuracy.txt", "w") as f:
+    # Ruta absoluta del workspace (GitHub o local)
+    workspace_dir = os.getcwd()
+    accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
+
+    print(f"💾 Guardando accuracy en: {accuracy_path}")
+    with open(accuracy_path, "w") as f:
         f.write(f"{accuracy:.4f}\n")
+
     print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
 except Exception as e:
     print(f"⚠️ No se pudo guardar accuracy.txt: {e}")
