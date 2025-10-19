@@ -76,7 +76,7 @@ else:
     print("❌ El modelo no cumple el umbral de precisión. Deteniendo pipeline.")
 
 # ===========================================================
-# ✅ Exportar accuracy real para GitHub Actions (corregido)
+# ✅ Exportar accuracy real para GitHub Actions (antes del exit)
 # ===========================================================
 try:
     if 'accuracy' in locals():
@@ -93,3 +93,9 @@ try:
         print("⚠️ Variable 'accuracy' no encontrada. No se puede guardar accuracy.txt")
 except Exception as e:
     print(f"⚠️ Error al guardar accuracy.txt: {e}")
+
+# 👇 Solo aquí hacemos la salida final
+if accuracy >= THRESHOLD:
+    sys.exit(0)
+else:
+    sys.exit(1)
