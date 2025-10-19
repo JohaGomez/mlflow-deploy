@@ -7,10 +7,12 @@ from sklearn.metrics import accuracy_score
 import sys
 import os
 
-# Parámetro de umbral
-THRESHOLD = 0.80  # Umbral de precisión mínima esperada
+# Parámetro de umbral mínimo aceptable
+THRESHOLD = 0.80  # Precisión mínima esperada
 
-# --- Cargar el MISMO dataset que en train.py ---
+print("🧪 Validando modelo registrado...")
+
+# --- Cargar el dataset externo (mismo usado en train.py) ---
 print("--- Debug: Cargando dataset externo: drug.csv ---")
 data_path = os.path.join(os.getcwd(), "drug.csv")
 
@@ -36,11 +38,11 @@ for col in df_encoded.columns:
 X = df_encoded.drop(columns=["Drug"])
 y = df_encoded["Drug"]
 
-# División de datos
+# División entrenamiento / prueba
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(f"--- Debug: Dimensiones de X_test: {X_test.shape} ---")
 
-# --- Cargar modelo previamente entrenado ---
+# --- Cargar el modelo entrenado ---
 model_filename = "model.pkl"
 model_path = os.path.abspath(os.path.join(os.getcwd(), model_filename))
 print(f"--- Debug: Intentando cargar modelo desde: {model_path} ---")
@@ -48,7 +50,7 @@ print(f"--- Debug: Intentando cargar modelo desde: {model_path} ---")
 try:
     model = joblib.load(model_path)
 except FileNotFoundError:
-    print(f"--- ERROR: No se encontró el archivo del modelo '{model_path}'. Ejecuta primero 'make train'. ---")
+    print(f"❌ ERROR: No se encontró el archivo '{model_path}'. Ejecuta primero 'make train'.")
     print(f"--- Debug: Archivos disponibles en {os.getcwd()}: ---")
     try:
         print(os.listdir(os.getcwd()))
@@ -57,48 +59,36 @@ except FileNotFoundError:
     print("---")
     sys.exit(1)
 
-# --- Predicción y Validación ---
+# --- Realizar predicciones ---
 print("--- Debug: Realizando predicciones ---")
 try:
     y_pred = model.predict(X_test)
 except ValueError as pred_err:
-    print(f"--- ERROR durante la predicción: {pred_err} ---")
+    print(f"❌ ERROR durante la predicción: {pred_err}")
     print(f"Modelo esperaba {model.n_features_in_} features, X_test tiene {X_test.shape[1]}.")
     sys.exit(1)
 
 accuracy = accuracy_score(y_test, y_pred)
 print(f"🔍 Precisión del modelo: {accuracy:.4f} (umbral: {THRESHOLD})")
 
-# Validación
+# --- Validar desempeño ---
 if accuracy >= THRESHOLD:
     print("✅ El modelo cumple los criterios de calidad (Accuracy OK).")
 else:
     print("❌ El modelo no cumple el umbral de precisión. Deteniendo pipeline.")
+    sys.exit(1)
 
 # ===========================================================
-# ✅ Exportar accuracy real para GitHub Actions (ruta corregida)
+# ✅ Exportar accuracy real para GitHub Actions
 # ===========================================================
 try:
-    if 'accuracy' in locals():
-        # 1️⃣ Detectar ruta actual (dentro del subdirectorio del runner)
-        current_dir = os.getcwd()
+    # Guardar dentro del proyecto (solución para Windows local)
+    accuracy_path = os.path.join(os.getcwd(), "accuracy.txt")
 
-        # 2️⃣ Subir un nivel (donde GitHub busca accuracy.txt)
-        workspace_dir = os.path.dirname(current_dir)
-        accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
+    print(f"💾 Guardando accuracy real en: {accuracy_path}")
+    with open(accuracy_path, "w") as f:
+        f.write(f"{accuracy:.4f}\n")
 
-        print(f"💾 Guardando accuracy real en: {accuracy_path}")
-        with open(accuracy_path, "w") as f:
-            f.write(f"{accuracy:.4f}\n")
-
-        print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
-    else:
-        print("⚠️ Variable 'accuracy' no encontrada. No se puede guardar accuracy.txt")
+    print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
 except Exception as e:
     print(f"⚠️ Error al guardar accuracy.txt: {e}")
-
-# 👇 Salida final después de guardar
-if accuracy >= THRESHOLD:
-    sys.exit(0)
-else:
-    sys.exit(1)

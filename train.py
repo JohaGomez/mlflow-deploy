@@ -125,8 +125,15 @@ try:
         mlflow.log_param("dataset", "drug.csv")
         mlflow.log_metric("accuracy", float(accuracy))
 
-        # Guardar modelo en MLflow
-        mlflow.sklearn.log_model(sk_model=model, artifact_path="model")
+        # Crear ejemplo de entrada para la firma del modelo
+        input_example = X_train.head(1)
+
+        # Registrar modelo sin warnings
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            name="drug-model",
+            input_example=input_example
+        )
 
         # Guardar modelo localmente
         joblib.dump(model, "model.pkl")
@@ -143,4 +150,3 @@ except Exception as e:
     if run:
         print(f"URI del Artefacto del Run: {run.info.artifact_uri}")
     sys.exit(1)
-
