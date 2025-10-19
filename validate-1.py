@@ -77,13 +77,14 @@ else:
     print("❌ El modelo no cumple el umbral de precisión. Deteniendo pipeline.")
     sys.exit(1)
 
-# ==============================================================
-# ✅ Exportar resultado final de Accuracy para GitHub Actions
-# ==============================================================
+# ===========================================================
+# ✅ Guardar accuracy final para GitHub Actions
+# ===========================================================
 try:
     with open("accuracy.txt", "w") as f:
         f.write(f"{accuracy:.4f}\n")
     print(f"🏁 Accuracy final del modelo: {accuracy:.4f}")
 except Exception as e:
     print(f"⚠️ No se pudo guardar accuracy.txt: {e}")
+
 
