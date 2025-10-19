@@ -37,7 +37,12 @@ jobs:
       - name: Mostrar resultado final
         run: |
           echo "🏁 Accuracy final del modelo:"
-          grep -o "Accuracy:[ 0-9.]*" mlruns/*/*/meta.yaml | tail -n 1 || echo "⚠️ No se encontró el valor de accuracy en los artefactos."
+          if [ -f accuracy.txt ]; then
+            cat accuracy.txt
+          else
+            echo "⚠️ No se encontró accuracy.txt, mostrando métricas desde logs..."
+            grep -i "Accuracy:" validate-1.py || true
+          fi
 
       - name: Subir artefactos de ejecución
         uses: actions/upload-artifact@v4
