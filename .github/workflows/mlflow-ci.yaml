@@ -33,17 +33,38 @@ jobs:
         run: |
           echo "🔎 Validando modelo..."
           make validate
+          # Guardar accuracy.txt para el siguiente paso
+          if [ -f accuracy.txt ]; then
+            echo "📦 Archivo accuracy.txt encontrado. Listo para exportar."
+          else
+            echo "⚠️ No se generó accuracy.txt, creando uno vacío..."
+            echo "0.0000" > accuracy.txt
+          fi
+        shell: bash
 
+      # 🔹 Subir archivo accuracy.txt como artefacto temporal
+      - name: Mantener accuracy.txt entre pasos
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-file
+          path: accuracy.txt
+
+      # 🔹 Mostrar el resultado final de accuracy
       - name: Mostrar resultado final
+        uses: actions/download-artifact@v4
+        with:
+          name: accuracy-file
         run: |
           echo "🏁 Accuracy final del modelo:"
           if [ -f accuracy.txt ]; then
             cat accuracy.txt
           else
             echo "⚠️ No se encontró accuracy.txt, mostrando métricas desde logs..."
-            grep -i "Accuracy:" validate-1.py || true
+            grep -i "Accuracy" validate-1.py || true
           fi
+        shell: bash
 
+      # 🔹 Subir artefactos de ejecución (modelo, logs, runs)
       - name: Subir artefactos de ejecución
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +72,8 @@ jobs:
           path: |
             mlruns
             model.pkl
+            accuracy.txt
+
 
 
           
