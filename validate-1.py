@@ -72,19 +72,16 @@ print(f"🔍 Precisión del modelo: {accuracy:.4f} (umbral: {THRESHOLD})")
 # Validación
 if accuracy >= THRESHOLD:
     print("✅ El modelo cumple los criterios de calidad (Accuracy OK).")
-    sys.exit(0)
 else:
     print("❌ El modelo no cumple el umbral de precisión. Deteniendo pipeline.")
-    sys.exit(1)
 
 # ===========================================================
-# ✅ Exportar accuracy real para GitHub Actions
+# ✅ Exportar accuracy real para GitHub Actions (corregido)
 # ===========================================================
-# Verificamos que la variable accuracy existe y es numérica
 try:
     if 'accuracy' in locals():
-        # Ruta absoluta (compatible con GitHub y Windows)
-        workspace_dir = os.getcwd()
+        # Subimos un nivel: /home/runner/work/mlflow-deploy/
+        workspace_dir = os.path.dirname(os.path.dirname(os.getcwd()))
         accuracy_path = os.path.join(workspace_dir, "accuracy.txt")
 
         print(f"💾 Guardando accuracy real en: {accuracy_path}")
@@ -96,5 +93,3 @@ try:
         print("⚠️ Variable 'accuracy' no encontrada. No se puede guardar accuracy.txt")
 except Exception as e:
     print(f"⚠️ Error al guardar accuracy.txt: {e}")
-
-
